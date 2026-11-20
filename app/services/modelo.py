@@ -13,6 +13,22 @@ VARIABLES = [
     "impagos_previos",
 ]
 
-# TODO: cargar el modelo joblib una sola vez, al importar el modulo
-# TODO: funcion decidir(probabilidad) -> "aprobar", "revisar" o "rechazar" (umbrales en el enunciado)
-# TODO: funcion predecir(entrada) -> PrediccionSalida, usando VARIABLES para ordenar los valores
+
+MODELO = joblib.load(MODEL_PATH)
+
+def decidir(probabilidad):
+    """Traduce una probabilidad de impago en una decision"""
+    if probabilidad < 0.2:
+        return "aprobar"
+    elif probabilidad < 0.5:
+        return "revisar"
+    return "rechazar"
+
+def predecir(entrada):
+    """Aplica el modelo a una solicitud validada y devuelve la salida del contrato"""
+    datos = entrada.model_dump()
+    fila = [datos[variable] for variable in VARIABLES]
+    probabilidad = float(MODELO.predict_proba([fila])[0][1])
+    return PrediccionSalida(
+        probabilidad_impago=probabilidad, decision=decidir(probabilidad)
+    )
