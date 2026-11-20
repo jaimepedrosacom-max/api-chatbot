@@ -18,7 +18,7 @@ class LLMSimulado:
     """LLM de mentira (sin red, sin cuenta, sin coste). Sirve para desarrollar y para los tests."""
 
     CAMPOS = {
-        "edad": r"edad\D{0,15}?(\d+)",
+        "edad": r"\bedad\D{0,15}?(\d+)",
         "ingresos_mensuales": r"ingresos\D{0,20}?(\d+(?:[.,]\d+)?)",
         "importe_prestamo": r"importe\D{0,20}?(\d+(?:[.,]\d+)?)",
         "plazo_meses": r"plazo\D{0,15}?(\d+)",
@@ -46,9 +46,11 @@ class LLMSimulado:
         datos = {}
         faltan = []
         for campo, patron in self.CAMPOS.items():
-            encontrado = re.search(patron, texto_usuario)
-            if encontrado:
-                numero = float(encontrado.group(1).replace(",", "."))
+            # Ultima coincidencia, no la primera: si el usuario hace una consulta
+            # nueva en la misma conversacion, sus valores pisan a los anteriores.
+            encontrados = re.findall(patron, texto_usuario)
+            if encontrados:
+                numero = float(encontrados[-1].replace(",", "."))
                 if numero == int(numero):
                     numero = int(numero)
                 datos[campo] = numero
