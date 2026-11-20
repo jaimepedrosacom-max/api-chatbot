@@ -1,0 +1,45 @@
+# Levanta la API y el frontend. Uso:  docker compose up --build
+# Chatbot:  http://localhost:8501      API:  http://localhost:8000/docs
+services:
+  api:
+    build: .
+    image: practica8-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Sin LLM_MODEL se usa el LLM simulado (sin red, sin coste).
+      # Para el LLM real, define estas variables en un fichero .env junto a este yml.
+      LLM_MODEL: "${LLM_MODEL:-}"
+      AZURE_API_KEY: "${AZURE_API_KEY:-}"
+      AZURE_API_BASE: "${AZURE_API_BASE:-}"
+      AZURE_API_VERSION: "${AZURE_API_VERSION:-}"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import httpx; httpx.get("http://localhost:8000/health").raise_for_status()
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  streamlit:
+    build: .
+    image: practica8-api
+    command:
+      - streamlit
+      - run
+      - frontend/app.py
+      - --server.port=8501
+      - --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      # "api" es el nombre del servicio: Docker lo resuelve por DNS en la red interna
+      API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

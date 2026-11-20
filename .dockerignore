@@ -1,0 +1,22 @@
+# Entorno virtual local: la imagen crea el suyo
+.venv/
+venv/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Git y documentacion
+.git/
+.gitignore
+*.md
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Editores
+.vscode/
+.idea/
